@@ -1,65 +1,53 @@
 ﻿"""
-data_augmentation.py - Enhanced version with more augmentations
+data_augmentation.py - Simple augmentation for quick experiments
 """
 
 import cv2
 import numpy as np
 import random
-import albumentations as A
-from pathlib import Path
 
-class AdvancedLeafAugmentor:
-    def __init__(self, config=None):
-        self.config = config or {
-            'rotation': 30,
-            'brightness': (0.7, 1.3),
-            'contrast': (0.8, 1.2),
-            'saturation': (0.8, 1.2),
-            'hue': (-20, 20),
-            'noise_var': (10, 50),
-            'blur_limit': 3
-        }
+class SimpleLeafAugmentor:
+    def __init__(self):
+        self.augmentations = []
+    
+    def add_flip(self, probability=0.5):
+        self.augmentations.append(('flip', probability))
+        return self
+    
+    def add_rotate(self, max_angle=15, probability=0.5):
+        self.augmentations.append(('rotate', max_angle, probability))
+        return self
+    
+    def add_brightness(self, factor_range=(0.9, 1.1), probability=0.5):
+        self.augmentations.append(('brightness', factor_range, probability))
+        return self
+    
+    def apply(self, image):
+        \"\"\"Apply selected augmentations\"\"\"
+        result = image.copy()
         
-        # Using albumentations for production-grade augmentations
-        self.transform = A.Compose([
-            A.Rotate(limit=self.config['rotation'], p=0.8),
-            A.RandomBrightnessContrast(
-                brightness_limit=self.config['brightness'][0],
-                contrast_limit=self.config['contrast'][0],
-                p=0.8
-            ),
-            A.HueSaturationValue(
-                hue_shift_limit=self.config['hue'],
-                sat_shift_limit=self.config['saturation'],
-                val_shift_limit=20,
-                p=0.8
-            ),
-            A.GaussNoise(var_limit=self.config['noise_var'], p=0.3),
-            A.Blur(blur_limit=self.config['blur_limit'], p=0.2),
-            A.HorizontalFlip(p=0.5),
-            A.VerticalFlip(p=0.1),
-        ])
+        for aug in self.augmentations:
+            if random.random() < aug[-1]:  # probability is last element
+                if aug[0] == 'flip':
+                    result = cv2.flip(result, 1)
+                elif aug[0] == 'rotate':
+                    angle = random.uniform(-aug[1], aug[1])
+                    h, w = result.shape[:2]
+                    matrix = cv2.getRotationMatrix2D((w/2, h/2), angle, 1)
+                    result = cv2.warpAffine(result, matrix, (w, h))
+                elif aug[0] == 'brightness':
+                    factor = random.uniform(aug[1][0], aug[1][1])
+                    result = cv2.convertScaleAbs(result, alpha=factor, beta=0)
+        
+        return result
     
-    def __call__(self, image):
-        \"\"\"Apply augmentations using albumentations\"\"\"
-        if isinstance(image, np.ndarray):
-            augmented = self.transform(image=image)
-            return augmented['image']
-        else:
-            raise ValueError("Image must be numpy array")
-    
-    def visualize_augmentations(self, image, num_samples=4):
-        \"\"\"Generate multiple augmented versions for visualization\"\"\"
-        augmented_images = []
-        for _ in range(num_samples):
-            aug_img = self.__call__(image)
-            augmented_images.append(aug_img)
-        return augmented_images
+    def __repr__(self):
+        return f"SimpleLeafAugmentor(augmentations={len(self.augmentations)})"
 
-# Add test code
+# Test simple augmentor
 if __name__ == "__main__":
-    print("Advanced Data Augmentation Module")
-    print("=" * 40)
-    print("✓ Albumentations integration")
-    print("✓ GPU-compatible transforms")
-    print("✓ Configurable augmentation pipeline")
+    print("Simple Data Augmentation")
+    print("=" * 30)
+    print("✓ Lightweight implementation")
+    print("✓ No external dependencies")
+    print("✓ Fast for prototyping")
