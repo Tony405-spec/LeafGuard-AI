@@ -1,23 +1,30 @@
-﻿"""
-train.py - Training script with a BUG (for bisect practice)
-"""
-import torch
-import numpy as np
+"""Minimal training smoke script for LeafGuard AI.
 
-class BuggyTrainer:
-    def __init__(self):
-        self.learning_rate = 0.1  # TOO HIGH! This will cause divergence
-    
-    def train_step(self):
-        # Bug: no gradient clipping, high LR causes NaN
+This is not a full model-training pipeline yet. It provides an import-safe
+training step that future dataset/model code can extend.
+"""
+
+import torch
+
+
+class SmokeTrainer:
+    def __init__(self, learning_rate: float = 0.001):
+        if learning_rate <= 0:
+            raise ValueError("learning_rate must be positive")
+        self.learning_rate = learning_rate
+
+    def train_step(self) -> float:
         loss = torch.tensor(1.0, requires_grad=True)
         loss.backward()
-        # Missing optimizer step with proper LR
-        return loss.item()
+        return float(loss.item())
 
-print("Training started...")
-trainer = BuggyTrainer()
-loss = trainer.train_step()
-print(f"Loss: {loss}")
 
-# This would normally fail with NaN after a few steps
+def main() -> None:
+    print("Training smoke check started...")
+    trainer = SmokeTrainer()
+    loss = trainer.train_step()
+    print(f"Loss: {loss}")
+
+
+if __name__ == "__main__":
+    main()
