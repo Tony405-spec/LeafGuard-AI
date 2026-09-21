@@ -60,3 +60,24 @@ Thumbs.db
 output/
 *.jpg
 !test_output.jpg  # Keep test output for verification
+
+# Python and data science artifacts
+.ipynb_checkpoints/
+.venv/
+.env.*
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.parquet
+*.feather
+*.pickle
+*.hdf5
+*.onnx
+*.sav
